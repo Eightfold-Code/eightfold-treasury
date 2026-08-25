@@ -15,8 +15,20 @@ lists every published adaptation and its metadata:
 - harness compatibility
 
 The registry is validated against `schemas/registry.schema.json`. A new
-`schemaVersion` is required only for breaking changes. Bundles can be added
-later as a new top-level key without changing the adaptation entries.
+`schemaVersion` is required only for breaking changes.
+
+## Bundles
+
+The optional `bundles` object groups adaptations for installation. Each key
+is a bundle ID. Its value is a list of adaptation IDs from `adaptations`.
+
+```json
+{
+  "bundles": {
+    "developer": ["hello-eightfold"]
+  }
+}
+```
 
 ## Branch model
 

@@ -27,16 +27,28 @@
     },
     "bundles": {
       "type": "object",
-      "description": "Bundles keyed by id. A bundle collects several adaptations into one installable set. Reserved for future use.",
+      "additionalProperties": false,
+      "description": "Bundles keyed by id. Each bundle lists adaptation ids.",
       "patternProperties": {
         "^[a-z0-9]+(-[a-z0-9]+)*$": {
-          "type": "object",
-          "description": "Reserved. The bundle shape is defined when bundle support ships."
+          "$ref": "#/definitions/bundle"
         }
       }
     }
   },
   "definitions": {
+    "adaptationId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "bundle": {
+      "type": "array",
+      "description": "Adaptation ids included in the bundle.",
+      "items": {
+        "$ref": "#/definitions/adaptationId"
+      },
+      "uniqueItems": true
+    },
     "adaptation": {
       "type": "object",
       "additionalProperties": true,

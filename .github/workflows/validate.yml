@@ -40,6 +40,14 @@ jobs:
 
           errors = []
 
+          adaptation_ids = set(registry.get("adaptations", {}))
+          for bundle_id, members in registry.get("bundles", {}).items():
+              for adaptation_id in members:
+                  if adaptation_id not in adaptation_ids:
+                      errors.append(
+                          f"{bundle_id}: unknown adaptation '{adaptation_id}'"
+                      )
+
           for adaptation_id, entry in registry.get("adaptations", {}).items():
               for field in (
                   "name",

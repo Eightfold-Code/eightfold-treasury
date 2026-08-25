@@ -14,5 +14,10 @@
         "eightfoldHarness": ">=0.1.0"
       }
     }
+  },
+  "bundles": {
+    "developer": [
+      "hello-eightfold"
+    ]
   }
 }
