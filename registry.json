@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "adaptations": {
+    "hello-eightfold": {
+      "name": "Hello Eightfold",
+      "description": "Minimal example Eightfold adaptation.",
+      "version": "0.1.0",
+      "source": {
+        "repository": "Eightfold-Code/eightfold-treasury",
+        "branch": "adaptation/hello-eightfold"
+      },
+      "entry": "index.ts",
+      "compatibility": {
+        "eightfoldHarness": ">=0.1.0"
+      }
+    }
+  }
+}

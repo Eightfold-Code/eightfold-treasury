@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Eightfold-Code/eightfold-treasury/blob/main/schemas/registry.schema.json",
+  "title": "Eightfold Treasury registry",
+  "description": "Machine-readable registry of published Eightfold adaptations and bundles.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schemaVersion",
+    "adaptations"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version of the registry format. Bump only on breaking changes."
+    },
+    "adaptations": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Adaptations keyed by id. Each entry points at the branch that holds the adaptation.",
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "$ref": "#/definitions/adaptation"
+        }
+      }
+    },
+    "bundles": {
+      "type": "object",
+      "description": "Bundles keyed by id. A bundle collects several adaptations into one installable set. Reserved for future use.",
+      "patternProperties": {
+        "^[a-z0-9]+(-[a-z0-9]+)*$": {
+          "type": "object",
+          "description": "Reserved. The bundle shape is defined when bundle support ships."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "adaptation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "name",
+        "description",
+        "version",
+        "source",
+        "entry",
+        "compatibility"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "repository",
+            "branch"
+          ],
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "branch": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$",
+              "description": "Pinned commit SHA. Makes installs reproducible."
+            }
+          }
+        },
+        "entry": {
+          "type": "string",
+          "minLength": 1
+        },
+        "compatibility": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "eightfoldHarness"
+          ],
+          "properties": {
+            "eightfoldHarness": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
