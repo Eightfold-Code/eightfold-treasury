@@ -1,3 +1,6 @@
-- insert:
-    - id: hello-eightfold
-      name: hello-eightfold
+# Enable the full-text session query service already mounted by dsh-base.
+# A later patch replaces the row's complete config, so both keys are restated.
+- id: session-query-sqlite
+  config:
+    path: !!js dshHomePath('session-search.sqlite')
+    openAt: first-search
