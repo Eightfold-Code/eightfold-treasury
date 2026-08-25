@@ -1,11 +1,15 @@
 # Hello Eightfold
 
-A minimal Eightfold adaptation that proves the Treasury install and
-execution flow end-to-end.
+A minimal Eightfold adaptation that proves the Treasury flow all the way from
+registry discovery to native DeepSeek Harness/Cordis plugin activation.
 
 ## Behavior
 
-The `eightfoldHello` tool takes a name and returns a greeting.
+The package exports `eightfoldHello`, which takes a name and returns a greeting.
+It also declares a native `dsh.bundle` and ships a `cordis.patch.yml`, so an
+installed Treasury adaptation can be linked into any Harness profile through
+the existing `dsh plugin` mechanism rather than a second Eightfold-specific
+loader.
 
 Input:
 
@@ -25,7 +29,10 @@ Hello Dino from Eightfold.
 /
 ├── eightfold.json
 ├── package.json
-├── README.md
-└── src/
-    └── index.ts
+├── cordis.patch.yml
+├── index.js
+└── README.md
 ```
+
+`eightfold.json` is the Treasury manifest. `package.json` and
+`cordis.patch.yml` are the native Harness bundle surface.
