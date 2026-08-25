@@ -1,0 +1,82 @@
+name: Validate Treasury registry
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate registry.json
+        run: python3 -m jsonschema -i registry.json schemas/registry.schema.json
+
+      - name: Validate example manifest
+        run: python3 -m jsonschema -i examples/hello-eightfold/eightfold.json schemas/adaptation.schema.json
+
+      - name: Check registry consistency
+        shell: bash
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import subprocess
+          import sys
+
+          with open("registry.json", encoding="utf-8") as handle:
+              registry = json.load(handle)
+
+          errors = []
+
+          for adaptation_id, entry in registry.get("adaptations", {}).items():
+              for field in (
+                  "name",
+                  "description",
+                  "version",
+                  "source",
+                  "entry",
+                  "compatibility",
+              ):
+                  if field not in entry:
+                      errors.append(
+                          f"{adaptation_id}: missing required field '{field}'"
+                      )
+
+              branch = entry.get("source", {}).get("branch")
+              if not branch:
+                  errors.append(f"{adaptation_id}: missing source.branch")
+                  continue
+
+              result = subprocess.run(
+                  ["git", "ls-remote", "--heads", "origin", branch],
+                  capture_output=True,
+                  text=True,
+                  check=False,
+              )
+              if result.returncode != 0 or not any(
+                  ref.endswith(branch) for ref in result.stdout.splitlines()
+              ):
+                  errors.append(
+                      f"{adaptation_id}: branch '{branch}' does not exist on origin"
+                  )
+
+          if errors:
+              print("Registry consistency check failed:")
+              for error in errors:
+                  print(f"  - {error}")
+              sys.exit(1)
+
+          print("Registry consistency check passed.")
+          PYEOF
