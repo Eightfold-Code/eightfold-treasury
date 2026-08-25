@@ -14,15 +14,21 @@ Treasury is a distribution layer, not a second plugin runtime. Reusing the
 Harness bundle/profile mechanism keeps downloaded adaptations compatible with
 the existing Cordis loader and `dsh plugin` tooling.
 
-## 1. Create an orphan branch
+## 1. Create an adaptation branch
 
-An orphan branch carries only the adaptation files and does not inherit the
-Treasury `main` tree.
+Prefer an orphan branch when working locally because it gives every adaptation
+an independent history:
 
 ```bash
 git checkout --orphan adaptation/browser
 git rm -rf .
 ```
+
+An orphan history is an optimization, not a runtime requirement. What Treasury
+requires is a **clean adaptation-only tree** at the published commit: no copy of
+Treasury `main`, no unrelated adaptations, and no generated repository clutter.
+The installer downloads only the pinned commit archive, so the commit tree — not
+its ancestry — determines payload size and contents.
 
 ## 2. Add the Eightfold manifest
 
@@ -93,9 +99,9 @@ export function apply(ctx) {
 The package name used by `cordis.patch.yml` must resolve from the profile after
 `dsh plugin` installs or links the downloaded adaptation package.
 
-A library-only Treasury artifact may omit `dsh.bundle`, but it cannot be
-activated as a Harness profile layer and should not be presented as an
-ordinary end-user adaptation.
+A configuration-only adaptation may use its patch to modify rows already
+provided by Harness. It can still carry a tiny `index.js` entry so the Treasury
+manifest and native package keep one consistent entry-point contract.
 
 ## 4. Validate the branch
 
@@ -163,7 +169,11 @@ Keep the registry descriptor synchronized with `eightfold.json`, especially:
 - entry point;
 - Harness compatibility.
 
-Validate the registry:
+The public Treasury CI validates the **pinned commit**, not the moving branch
+head. It also checks `package.json`, the declared entry file, and the native
+`dsh.bundle.patch` so a registry release cannot point at an incomplete package.
+
+Validate the registry locally:
 
 ```bash
 python3 -m jsonschema -i registry.json schemas/registry.schema.json
@@ -205,13 +215,13 @@ dsh eightfold add developer --profile tui
 ```
 
 The first command discovers the pinned adaptation. The second downloads and
-validates it under the Eightfold home, then delegates activation to the native
-`dsh plugin` profile reconciler.
+validates it under the Eightfold home, checks Harness compatibility, then
+delegates activation to the native `dsh plugin` profile reconciler.
 
 ## 9. Open a pull request
 
-Open a pull request against `main`. CI should validate the registry and
-manifests, verify referenced branches and pins, and reject a registry entry that
-cannot be reproduced from its declared source.
+Open a pull request against `main`. CI validates the registry and manifests,
+verifies referenced branches and pinned release files, and rejects a registry
+entry that cannot be reproduced from its declared source.
 
 After the pull request merges, the adaptation is published.
