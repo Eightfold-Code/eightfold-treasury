@@ -3,13 +3,14 @@
   "adaptations": {
     "hello-eightfold": {
       "name": "Hello Eightfold",
-      "description": "Minimal example Eightfold adaptation.",
-      "version": "0.1.0",
+      "description": "Minimal Eightfold adaptation and native DeepSeek Harness plugin bundle.",
+      "version": "0.2.0",
       "source": {
         "repository": "Eightfold-Code/eightfold-treasury",
-        "branch": "adaptation/hello-eightfold"
+        "branch": "adaptation/hello-eightfold",
+        "commit": "9f930069ded2283c66b21092f37ebabc7e18dccd"
       },
-      "entry": "index.ts",
+      "entry": "index.js",
       "compatibility": {
         "eightfoldHarness": ">=0.1.0"
       }
