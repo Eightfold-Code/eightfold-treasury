@@ -27,17 +27,25 @@ jobs:
       - name: Validate example manifest
         run: python3 -m jsonschema -i examples/hello-eightfold/eightfold.json schemas/adaptation.schema.json
 
-      - name: Check registry consistency
+      - name: Check registry consistency and branch manifests
         shell: bash
         run: |
           python3 - <<'PYEOF'
           import json
           import subprocess
           import sys
+          import urllib.error
+          import urllib.request
+
+          from jsonschema import Draft7Validator
 
           with open("registry.json", encoding="utf-8") as handle:
               registry = json.load(handle)
 
+          with open("schemas/adaptation.schema.json", encoding="utf-8") as handle:
+              manifest_schema = json.load(handle)
+
+          manifest_validator = Draft7Validator(manifest_schema)
           errors = []
 
           adaptation_ids = set(registry.get("adaptations", {}))
@@ -67,17 +75,48 @@ jobs:
                   errors.append(f"{adaptation_id}: missing source.branch")
                   continue
 
+              repository = entry.get("source", {}).get("repository")
+              if not repository:
+                  errors.append(f"{adaptation_id}: missing source.repository")
+                  continue
+
+              repository_url = f"https://github.com/{repository}.git"
+              branch_ref = f"refs/heads/{branch}"
               result = subprocess.run(
-                  ["git", "ls-remote", "--heads", "origin", branch],
+                  ["git", "ls-remote", repository_url, branch_ref],
                   capture_output=True,
                   text=True,
                   check=False,
               )
-              if result.returncode != 0 or not any(
-                  ref.endswith(branch) for ref in result.stdout.splitlines()
-              ):
+              refs = [line.split() for line in result.stdout.splitlines()]
+              matches = [sha for sha, ref in refs if ref == branch_ref]
+              if result.returncode != 0 or not matches:
                   errors.append(
-                      f"{adaptation_id}: branch '{branch}' does not exist on origin"
+                      f"{adaptation_id}: branch '{branch}' does not exist in "
+                      f"'{repository}'"
+                  )
+                  continue
+
+              manifest_url = (
+                  "https://raw.githubusercontent.com/"
+                  f"{repository}/{matches[0]}/eightfold.json"
+              )
+              try:
+                  with urllib.request.urlopen(manifest_url) as response:
+                      manifest = json.load(response)
+              except (urllib.error.URLError, json.JSONDecodeError) as error:
+                  errors.append(
+                      f"{adaptation_id}: cannot load eightfold.json from "
+                      f"branch '{branch}': {error}"
+                  )
+                  continue
+
+              for error in manifest_validator.iter_errors(manifest):
+                  location = ".".join(str(part) for part in error.path)
+                  prefix = f" at '{location}'" if location else ""
+                  errors.append(
+                      f"{adaptation_id}: invalid eightfold.json{prefix}: "
+                      f"{error.message}"
                   )
 
           if errors:
