@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "hello-eightfold",
   "name": "Hello Eightfold",
-  "version": "0.1.0",
-  "description": "Minimal example Eightfold adaptation.",
-  "entry": "./src/index.ts",
+  "version": "0.2.0",
+  "description": "Minimal Eightfold adaptation and native DeepSeek Harness plugin bundle.",
+  "entry": "./index.js",
   "compatibility": {
     "harness": ">=0.1.0"
   },
