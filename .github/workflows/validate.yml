@@ -27,11 +27,12 @@ jobs:
       - name: Validate example manifest
         run: python3 -m jsonschema -i examples/hello-eightfold/eightfold.json schemas/adaptation.schema.json
 
-      - name: Check registry consistency and branch manifests
+      - name: Check pinned releases, manifests, and native bundles
         shell: bash
         run: |
           python3 - <<'PYEOF'
           import json
+          import re
           import subprocess
           import sys
           import urllib.error
@@ -47,6 +48,28 @@ jobs:
 
           manifest_validator = Draft7Validator(manifest_schema)
           errors = []
+
+          def raw_url(repository, commit, path):
+              normalized = path.removeprefix("./")
+              return (
+                  "https://raw.githubusercontent.com/"
+                  f"{repository}/{commit}/{normalized}"
+              )
+
+          def load_json(url, label):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      return json.load(response)
+              except (urllib.error.URLError, json.JSONDecodeError) as error:
+                  errors.append(f"{label}: cannot load {url}: {error}")
+                  return None
+
+          def require_file(url, label):
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      response.read(1)
+              except urllib.error.URLError as error:
+                  errors.append(f"{label}: cannot load {url}: {error}")
 
           adaptation_ids = set(registry.get("adaptations", {}))
           for bundle_id, members in registry.get("bundles", {}).items():
@@ -70,16 +93,25 @@ jobs:
                           f"{adaptation_id}: missing required field '{field}'"
                       )
 
-              branch = entry.get("source", {}).get("branch")
-              if not branch:
-                  errors.append(f"{adaptation_id}: missing source.branch")
-                  continue
+              source = entry.get("source", {})
+              repository = source.get("repository")
+              branch = source.get("branch")
+              commit = source.get("commit")
 
-              repository = entry.get("source", {}).get("repository")
               if not repository:
                   errors.append(f"{adaptation_id}: missing source.repository")
                   continue
+              if not branch:
+                  errors.append(f"{adaptation_id}: missing source.branch")
+                  continue
+              if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+                  errors.append(
+                      f"{adaptation_id}: public Treasury releases require a full source.commit pin"
+                  )
+                  continue
 
+              # The branch is the human-maintained release line. It may move
+              # after publication, but it must continue to exist.
               repository_url = f"https://github.com/{repository}.git"
               branch_ref = f"refs/heads/{branch}"
               result = subprocess.run(
@@ -97,33 +129,91 @@ jobs:
                   )
                   continue
 
-              manifest_url = (
-                  "https://raw.githubusercontent.com/"
-                  f"{repository}/{matches[0]}/eightfold.json"
+              # Validate the immutable release, never the current branch head.
+              manifest = load_json(
+                  raw_url(repository, commit, "eightfold.json"),
+                  f"{adaptation_id}: pinned manifest",
               )
-              try:
-                  with urllib.request.urlopen(manifest_url) as response:
-                      manifest = json.load(response)
-              except (urllib.error.URLError, json.JSONDecodeError) as error:
-                  errors.append(
-                      f"{adaptation_id}: cannot load eightfold.json from "
-                      f"branch '{branch}': {error}"
-                  )
+              if manifest is None:
                   continue
 
               for error in manifest_validator.iter_errors(manifest):
                   location = ".".join(str(part) for part in error.path)
                   prefix = f" at '{location}'" if location else ""
                   errors.append(
-                      f"{adaptation_id}: invalid eightfold.json{prefix}: "
+                      f"{adaptation_id}: invalid pinned eightfold.json{prefix}: "
                       f"{error.message}"
                   )
 
+              if manifest.get("id") != adaptation_id:
+                  errors.append(
+                      f"{adaptation_id}: manifest id {manifest.get('id')!r} does not match registry id"
+                  )
+              if manifest.get("version") != entry.get("version"):
+                  errors.append(
+                      f"{adaptation_id}: manifest version {manifest.get('version')!r} "
+                      f"does not match registry version {entry.get('version')!r}"
+                  )
+
+              manifest_entry = str(manifest.get("entry", "")).removeprefix("./")
+              registry_entry = str(entry.get("entry", "")).removeprefix("./")
+              if manifest_entry != registry_entry:
+                  errors.append(
+                      f"{adaptation_id}: manifest entry {manifest_entry!r} "
+                      f"does not match registry entry {registry_entry!r}"
+                  )
+
+              registry_compat = entry.get("compatibility", {}).get("eightfoldHarness")
+              manifest_compat = manifest.get("compatibility", {}).get("harness")
+              if manifest_compat != registry_compat:
+                  errors.append(
+                      f"{adaptation_id}: manifest Harness compatibility {manifest_compat!r} "
+                      f"does not match registry compatibility {registry_compat!r}"
+                  )
+
+              require_file(
+                  raw_url(repository, commit, registry_entry),
+                  f"{adaptation_id}: declared entry",
+              )
+
+              package = load_json(
+                  raw_url(repository, commit, "package.json"),
+                  f"{adaptation_id}: native package",
+              )
+              if package is None:
+                  continue
+              if package.get("version") != entry.get("version"):
+                  errors.append(
+                      f"{adaptation_id}: package version {package.get('version')!r} "
+                      f"does not match registry version {entry.get('version')!r}"
+                  )
+              package_main = str(package.get("main", "")).removeprefix("./")
+              if package_main != registry_entry:
+                  errors.append(
+                      f"{adaptation_id}: package main {package_main!r} "
+                      f"does not match registry entry {registry_entry!r}"
+                  )
+
+              patch = (
+                  package.get("dsh", {})
+                  .get("bundle", {})
+                  .get("patch")
+              )
+              if not isinstance(patch, str) or not patch:
+                  errors.append(
+                      f"{adaptation_id}: package.json must declare dsh.bundle.patch"
+                  )
+              else:
+                  require_file(
+                      raw_url(repository, commit, patch),
+                      f"{adaptation_id}: native bundle patch",
+                  )
+
           if errors:
-              print("Registry consistency check failed:")
+              print("Treasury release validation failed:")
               for error in errors:
                   print(f"  - {error}")
               sys.exit(1)
 
-          print("Registry consistency check passed.")
+          print("Treasury release validation passed.")
           PYEOF
