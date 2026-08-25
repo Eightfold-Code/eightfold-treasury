@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "hello-eightfold",
+  "name": "Hello Eightfold",
+  "version": "0.1.0",
+  "description": "Minimal example Eightfold adaptation.",
+  "entry": "./src/index.ts",
+  "compatibility": {
+    "harness": ">=0.1.0"
+  },
+  "permissions": [],
+  "dependencies": []
+}
