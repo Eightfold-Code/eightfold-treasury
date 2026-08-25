@@ -1,13 +1,9 @@
-export const name = 'hello-eightfold'
+export const name = 'eightfold-session-search'
 
-export function eightfoldHello(params = {}) {
-  const target = typeof params.name === 'string' && params.name.length > 0 ? params.name : 'Dino'
-  return `Hello ${target} from Eightfold.`
-}
-
-export function apply() {
-  // Intentionally empty: this adaptation proves that a Treasury package can
-  // mount as a native DeepSeek Harness/Cordis plugin layer.
-}
+/**
+ * Configuration-only adaptation. Runtime behavior is provided by the existing
+ * @deepseek-ai/dsh-session-query-sqlite row configured by cordis.patch.yml.
+ */
+export function apply() {}
 
 export default apply
