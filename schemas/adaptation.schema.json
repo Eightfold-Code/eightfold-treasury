@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/Eightfold-Code/eightfold-treasury/blob/main/schemas/adaptation.schema.json",
+  "title": "Eightfold adaptation manifest",
+  "description": "Manifest for a single Eightfold adaptation. Lives at the root of an adaptation branch as eightfold.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "description",
+    "entry",
+    "compatibility",
+    "permissions",
+    "dependencies"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version of the manifest format. Bump only on breaking changes."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entry": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Path to the adaptation entry point, relative to the branch root."
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "harness"
+      ],
+      "properties": {
+        "harness": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Permissions the adaptation may request. Known values include filesystem, network, browser, shell, git, docker, credentials, email, and calendar.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Ids of other adaptations this adaptation depends on.",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
