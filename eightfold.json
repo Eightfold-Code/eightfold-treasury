@@ -1,13 +1,15 @@
 {
   "schemaVersion": 1,
-  "id": "hello-eightfold",
-  "name": "Hello Eightfold",
-  "version": "0.2.0",
-  "description": "Minimal Eightfold adaptation and native DeepSeek Harness plugin bundle.",
+  "id": "session-search",
+  "name": "Session Search",
+  "version": "0.1.0",
+  "description": "Enable persistent full-text session search in Eightfold Harness profiles.",
   "entry": "./index.js",
   "compatibility": {
-    "harness": ">=0.1.0"
+    "harness": ">=0.1.1"
   },
-  "permissions": [],
+  "permissions": [
+    "filesystem"
+  ],
   "dependencies": []
 }
