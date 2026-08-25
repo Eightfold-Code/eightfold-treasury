@@ -1,7 +1,7 @@
 {
-  "name": "hello-eightfold",
-  "version": "0.2.0",
-  "description": "Minimal Eightfold adaptation and native DeepSeek Harness plugin bundle.",
+  "name": "eightfold-session-search",
+  "version": "0.1.0",
+  "description": "Persistent full-text session search for Eightfold Harness profiles.",
   "type": "module",
   "main": "index.js",
   "files": [
