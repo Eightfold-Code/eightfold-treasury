@@ -14,11 +14,26 @@
       "compatibility": {
         "eightfoldHarness": ">=0.1.0"
       }
+    },
+    "session-search": {
+      "name": "Session Search",
+      "description": "Enable persistent full-text session search in Eightfold Harness profiles.",
+      "version": "0.1.0",
+      "source": {
+        "repository": "Eightfold-Code/eightfold-treasury",
+        "branch": "adaptation/session-search",
+        "commit": "4b40e249201d08fad1e4c958d20a6bc51a582ba0"
+      },
+      "entry": "index.js",
+      "compatibility": {
+        "eightfoldHarness": ">=0.1.1"
+      }
     }
   },
   "bundles": {
     "developer": [
-      "hello-eightfold"
+      "hello-eightfold",
+      "session-search"
     ]
   }
 }
