@@ -1,0 +1,7 @@
+{
+  "$schema": "https://github.com/Eightfold-Code/eightfold-treasury/blob/main/schemas/market.schema.json",
+  "schemaVersion": 1,
+  "name": "Session Search",
+  "description": "Persistent full-text search across Eightfold Harness sessions, exposed as an installable Treasury adaptation.",
+  "tags": ["search", "sessions", "productivity"]
+}
