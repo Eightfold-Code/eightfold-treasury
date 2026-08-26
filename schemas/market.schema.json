@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Eightfold-Code/eightfold-treasury/blob/main/schemas/market.schema.json",
+  "title": "Eightfold marketplace card metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "name", "description"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 280 },
+    "cover": { "type": "string", "minLength": 1 },
+    "tags": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 32 }
+    }
+  }
+}
