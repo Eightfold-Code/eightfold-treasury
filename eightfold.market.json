@@ -1,0 +1,7 @@
+{
+  "$schema": "https://github.com/Eightfold-Code/eightfold-treasury/blob/main/schemas/market.schema.json",
+  "schemaVersion": 1,
+  "name": "Hello Eightfold",
+  "description": "Minimal Eightfold adaptation and native Harness plugin bundle for testing the Treasury install flow.",
+  "tags": ["starter", "example", "plugin"]
+}
